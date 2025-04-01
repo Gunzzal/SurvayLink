@@ -18,16 +18,12 @@ const MenuWrapper = styled.section`
   height: 80px;
   color: #333;
   font: 700 17px Roboto, sans-serif;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* 아래쪽 그림자 추가 */
-    /* 커서가 올라갔을 때의 스타일 */
-  &:hover {
-    box-shadow: none; /* 그림자 제거 */
-    border-bottom: 1px solid #ccc;
 `;
 
 const MenuItem = styled.div`
   padding-top: 10px;
-  margin-right: 100px; /* 항목 간 간격 조절 */
+  margin-left: 50px; /* 항목 간 간격 조절 */
+  margin-right: 50px; /* 항목 간 간격 조절 */
   cursor: pointer;
    &:hover {
     color: darkblue;

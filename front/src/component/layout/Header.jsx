@@ -1,23 +1,34 @@
 import React from 'react';
+import styled from 'styled-components';
+import LogoImage from '../../images/logo.jpg';
 import Menu from '../includes/header/Menu';
-// import styled from 'styled-components';
+import PersonalMenu from '../includes/header/PersonalMenu';
+import { useMovePage } from '../../hooks/useMovePage';
 
 const Header = () => {
-  const menuItems = ['소개', '서비스', '연락처', '블로그'];
+  const { moveTo } = useMovePage();
 
   return (
-    <div>
-      <Menu menuItems={menuItems} />
-      {/* <Hr/> */}
-    </div>
+    <HeaderWrapper>
+        <Image src={LogoImage} alt="Logo" onClick={() => moveTo("/")}/> 
+        <Menu />
+        <PersonalMenu/>
+    </HeaderWrapper>
   );
 };
 
-// const Hr = styled.hr`
-//     border: none; /* 기본 테두리 제거 */
-//     height: 1px; /* 선의 높이 설정 */
-//     background-color: #ccc; /* 선의 색상 설정 */
-//     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); /* 아래쪽 그림자 추가 */
-// `;
+const HeaderWrapper = styled.div`
+    display: flex; 
+    cursor: pointer;
+    border-bottom: 1px solid #ccc;
+`;
+
+
+const Image = styled.img`
+    width: 200px;  /* 이미지 너비 조절 */
+    height: auto; /* 비율에 따라 높이 자동 조절 */
+    margin-right: auto;
+`;
+
 
 export default Header;
