@@ -85,7 +85,7 @@ const PanelContainer = styled.div`
   margin: auto;
   margin-top: 20px;
   margin-bottom: 100px;
-  width: 500px;
+  width: 450px;
   background-color: #fafafa;
   border-radius: 20px;
   border: 1px solid #ddd;

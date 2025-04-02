@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.auth.domain.AuthRequestDTO;
@@ -23,10 +24,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/request")
-    public ResponseEntity<String> request(@RequestBody AuthRequestDTO params) {
+    public ResponseEntity<Integer> request(@RequestBody AuthRequestDTO params) {
 
-        // System.out.println(params);
-        String result = authService.request(params);
+        Integer result = authService.request(params);
+        return new ResponseEntity<>(result,HttpStatus.OK);
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<Boolean> verify(@RequestBody AuthRequestDTO params) {
+
+        Boolean result = authService.verifyCode(params.getPhone(), params.getAuthCode());
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
     

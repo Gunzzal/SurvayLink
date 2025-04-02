@@ -1,13 +1,19 @@
 package com.example.demo.auth.service;
 
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.auth.domain.AuthRequestDTO;
+import com.example.demo.auth.entity.Auth;
+import com.example.demo.auth.repository.AuthRepository;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import net.nurigo.sdk.NurigoApp;
 import net.nurigo.sdk.message.model.Message;
@@ -19,44 +25,102 @@ import net.nurigo.sdk.message.service.DefaultMessageService;
 @RequiredArgsConstructor
 public class AuthService {
     
-    private final DefaultMessageService messageService;
-    private String phone;
+    private DefaultMessageService messageService;
+    private final Dotenv dotenv = Dotenv.load();
 
-    public String request(AuthRequestDTO params){
-        phone = params.getPhone();
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private final AuthRepository authRepository;
+
+
+    @PostConstruct 
+    private void initMessageService() {
+        this.messageService = NurigoApp.INSTANCE.initialize(
+            dotenv.get("SMS_API_KEY"), 
+            dotenv.get("SMS_API_SECRET"), 
+            dotenv.get("SMS_API_URL")
+        );
+    }
+
+    public Integer request(AuthRequestDTO params){
+        String phone = params.getPhone();
+        String authCode = generateVerificationCode();
+        saveVerificationCode(phone, authCode);
         try {
-            SingleMessageSentResponse result = sendMmsByResourcePath();
-            System.out.println("발송 완료: "+result);
-            return result.getStatusMessage();
+            SingleMessageSentResponse result = sendMmsByResourcePath(authCode, phone);
+            return Integer.parseInt(result.getStatusCode());
         }catch(Exception error){
-            System.out.println("에러발생!!!! "+error);
-            return "에러 발생!!";
+            return -1;
         }
     }
 
-    public AuthService() {
-        Dotenv dotenv = Dotenv.load();
-        this.messageService = NurigoApp.INSTANCE.initialize(dotenv.get("SMS_API_KEY"), 
-                                                            dotenv.get("SMS_API_SECRET"), 
-                                                            dotenv.get("SMS_API_URL"));
-    }
+    // public AuthService() {
+    //     this.dotenv = Dotenv.load();
+    //     this.messageService = NurigoApp.INSTANCE.initialize(dotenv.get("SMS_API_KEY"), 
+    //                                                         dotenv.get("SMS_API_SECRET"), 
+    //                                                         dotenv.get("SMS_API_URL"));
+    // }
 
-    public SingleMessageSentResponse sendMmsByResourcePath() throws IOException {
-        // ClassPathResource resource = new ClassPathResource("static/sample.jpg");
-        // File file = resource.getFile();
-        // String imageId = this.messageService.uploadFile(file, StorageType.MMS, null);
-
+    public SingleMessageSentResponse sendMmsByResourcePath(String authCode, String phone) throws IOException {
+        
         Message message = new Message();
         // 발신번호 및 수신번호는 반드시 01012345678 형태로 입력되어야 합니다.
-        message.setFrom("01050183086");
+        message.setFrom(dotenv.get("SMS_API_PHONE"));
         message.setTo(phone);
-        message.setText("한글 45자, 영자 90자 이하 입력되면 자동으로 SMS타입의 메시지가 추가됩니다.");
+        message.setText("인증코드 : "+authCode);
         // message.setImageId(imageId);
 
         // 여러 건 메시지 발송일 경우 send many 예제와 동일하게 구성하여 발송할 수 있습니다.
         SingleMessageSentResponse response = this.messageService.sendOne(new SingleMessageSendingRequest(message));
-        System.out.println(response);
+        // System.out.println(response);
 
         return response;
     }
+
+    public String generateVerificationCode() {
+        StringBuilder code = new StringBuilder(6);
+        for (int i = 0; i < 6; i++) {
+            code.append(CHARACTERS.charAt(RANDOM.nextInt(CHARACTERS.length())));
+        }
+        String verificationCode = code.toString();
+        return verificationCode;
+    }
+
+     // 새 인증 코드 저장
+     @Transactional
+     public void saveVerificationCode(String phoneNumber, String verificationCode) {
+         Auth auth = Auth.builder()
+                 .phone(phoneNumber)
+                 .authCode(verificationCode)
+                 .createdAt(LocalDateTime.now())
+                 .expiresAt(LocalDateTime.now().plusMinutes(3)) // 3분 후 만료
+                 .authed(false)
+                 .build();
+ 
+                 authRepository.save(auth);
+     }
+    
+        // 인증 코드 검증
+        @Transactional
+        public boolean verifyCode(String phone, String authCode) {
+            Optional<Auth> smsAuth = authRepository
+                    .findByPhoneAndAuthCode(phone, authCode);
+    
+            if (smsAuth.isPresent() && smsAuth.get().getExpiresAt().isAfter(LocalDateTime.now())) {
+                // 인증 완료 처리
+                Auth auth = smsAuth.get();
+                auth.setAuthed(true);
+                authRepository.save(auth);
+                return true;
+            }
+            return false;
+        }
+    
+        // 만료된 코드 삭제 (스케줄러에서 호출 가능)
+        @Transactional
+        public void deleteExpiredCodes() {
+            
+            authRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+        }
 }

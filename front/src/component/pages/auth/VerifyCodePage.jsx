@@ -1,21 +1,19 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import api from "../../api/axios";
+import { useMovePage } from "../../../hooks/useMovePage";
+import { AuthRequest } from "../../api/auth";
 
 const VerifyCodePage = () => {
+    const {moveTo} = useMovePage();
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
 
-    const AuthRequest = async () => {
-        const data = {
-            name : name,
-            phone : phone
-        }
-        try{
-            const response = await api.post("/auth/request",data);
-            console.log(response.data);
-        }catch(error){
-            console.log(error);
+    const AuthRequestClick = async () => {
+        const AuthResult = await AuthRequest(name, phone);
+        if(AuthResult===2000){
+            moveTo("/login/CodeInput", { phone });
+        }else{
+
         }
     }
 
@@ -39,7 +37,7 @@ const VerifyCodePage = () => {
                     onChange={(e) => setPhone(e.target.value)}
                 />
 
-                <SubmitButton onClick={AuthRequest}>인증 요청</SubmitButton>
+                <SubmitButton onClick={AuthRequestClick}>인증 요청</SubmitButton>
             </Form>
         </Container>
     );
