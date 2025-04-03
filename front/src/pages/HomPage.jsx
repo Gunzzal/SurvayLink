@@ -1,7 +1,7 @@
 import React from 'react';
-import ImageBoard from '../includes/homePage/ImageBoard';
+import ImageBoard from '../component/includes/homePage/ImageBoard';
 import styled from 'styled-components';
-import SurveyCardButton from '../includes/homePage/SurveyCardButton';
+import SurveyCardButton from '../component/includes/homePage/SurveyCardButton';
 
 const HomPage = () => {
 

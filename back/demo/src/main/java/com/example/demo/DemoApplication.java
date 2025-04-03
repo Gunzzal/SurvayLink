@@ -11,12 +11,12 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class DemoApplication {
 
 	static {
-        // ✅ `.env.properties` 로드
+        // `.env.properties` 로드
         Dotenv dotenv = Dotenv.configure()
                 .ignoreIfMissing() // 파일 없으면 무시
                 .load();
 
-        // ✅ 환경 변수 설정
+        // 환경 변수 설정
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
     }
 

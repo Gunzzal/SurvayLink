@@ -55,13 +55,6 @@ public class AuthService {
         }
     }
 
-    // public AuthService() {
-    //     this.dotenv = Dotenv.load();
-    //     this.messageService = NurigoApp.INSTANCE.initialize(dotenv.get("SMS_API_KEY"), 
-    //                                                         dotenv.get("SMS_API_SECRET"), 
-    //                                                         dotenv.get("SMS_API_URL"));
-    // }
-
     public SingleMessageSentResponse sendMmsByResourcePath(String authCode, String phone) throws IOException {
         
         Message message = new Message();

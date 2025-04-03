@@ -22,7 +22,6 @@ export const AuthVerify = async (phone, authCode) => {
     }
     try {
         const response = await api.post("/auth/verify", data);
-        console.log(response.data);
         return response.data;
     } catch (error) {
         console.log(error);

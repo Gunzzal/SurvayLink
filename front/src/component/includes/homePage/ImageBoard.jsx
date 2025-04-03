@@ -41,7 +41,7 @@ const ImageBoard = () => {
           {images.map((_, index) => (
             <Dot
               key={index}
-              active={index === currentIndex}
+              active={index === currentIndex ? 1 : 0}
               onClick={() => handleDotClick(index)}
             />
           ))}
